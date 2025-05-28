@@ -3,6 +3,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -20,13 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [showContent, setShowContent] = useState(false);
+  const searchParams = useSearchParams();
+  const status = searchParams.get('status');
+  const username = searchParams.get('username');
 
   useEffect(() => {
     function clearAuthTokenCookie() {
       document.cookie = 'auth-token=; Max-Age=0; path=/';
     }
 
-    // Don't apply forced logout logic for login page itself!
+    if (username && status === 'success') {
+      setShowContent(true);
+    }
+
     if (window.location.pathname !== '/login') {
       let shouldRedirect = false;
 
@@ -34,11 +41,12 @@ export default function RootLayout({
         // Modern Navigation API (Chromium-based)
         // @ts-expect-error poc
         const navType = window.navigation.activation?.navigationType;
+        console.log('navType', navType);
         if (
           navType === 'navigate' ||
           navType === 'reload' ||
           navType === 'replace' ||
-          navType === 'push'
+          (navType === 'push' && !username && status !== 'success')
         ) {
           shouldRedirect = true;
         }

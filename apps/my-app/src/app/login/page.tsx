@@ -1,13 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +22,16 @@ export default function Login() {
         console.log('🚀 ~ handleSubmit ~ res:', res);
 
         if (res.ok) {
-          await router.push('/');
+          const faceAuthUrl =
+            process.env.NEXT_PUBLIC_FACE_AUTH_URL ||
+            'http://localhost:3002';
+
+          const callbackUrl = window.location.origin;
+          const redirectUrl = new URL(faceAuthUrl);
+          redirectUrl.searchParams.set('username', username);
+          redirectUrl.searchParams.set('callback', callbackUrl);
+
+          window.location.href = redirectUrl.toString();
         } else {
           setError('Login failed');
         }

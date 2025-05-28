@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import * as faceapi from 'face-api.js';
 
 interface User {
@@ -10,6 +11,10 @@ interface User {
 }
 
 export default function FaceAuth() {
+  const searchParams = useSearchParams();
+  const expectedUsername = searchParams.get('username');
+  const callbackUrl = searchParams.get('callback') || process.env.NEXT_PUBLIC_CALLBACK_URL || 'http://localhost:3000';
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -18,11 +23,16 @@ export default function FaceAuth() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [message, setMessage] = useState('');
+  const [isVerificationMode, setIsVerificationMode] = useState(false);
 
   useEffect(() => {
     loadModels();
     loadUsersFromStorage();
-  }, []);
+    if (expectedUsername) {
+      setIsVerificationMode(true);
+      setMessage(`Please authenticate as ${expectedUsername}`);
+    }
+  }, [expectedUsername]);
 
   const loadModels = async () => {
     try {
@@ -182,16 +192,34 @@ export default function FaceAuth() {
       if (match.label === 'unknown') {
         setMessage('Face not recognized');
         setCurrentUser(null);
+        if (isVerificationMode) {
+          setTimeout(() => handleFailedAuth(), 2000);
+        }
       } else {
         const matchedUser = users.find(
           (user) => user.name === match.label
         );
         setCurrentUser(matchedUser || null);
-        setMessage(
-          `Welcome, ${
-            match.label
-          }! (Distance: ${match.distance.toFixed(2)})`
-        );
+        
+        if (isVerificationMode && expectedUsername) {
+          if (match.label.toLowerCase() === expectedUsername.toLowerCase()) {
+            setMessage(
+              `✅ Authentication successful! Welcome, ${match.label}! (Distance: ${match.distance.toFixed(2)})`
+            );
+            setTimeout(() => handleSuccessfulAuth(match.label), 2000);
+          } else {
+            setMessage(
+              `❌ Authentication failed! Expected ${expectedUsername}, but detected ${match.label}`
+            );
+            setTimeout(() => handleFailedAuth(), 2000);
+          }
+        } else {
+          setMessage(
+            `Welcome, ${
+              match.label
+            }! (Distance: ${match.distance.toFixed(2)})`
+          );
+        }
       }
     } catch (error) {
       setMessage('Error during authentication');
@@ -206,10 +234,28 @@ export default function FaceAuth() {
     setMessage('All users cleared');
   };
 
+  const handleSuccessfulAuth = (username: string) => {
+    if (isVerificationMode && expectedUsername) {
+      const redirectUrl = new URL(callbackUrl);
+      redirectUrl.searchParams.set('status', 'success');
+      redirectUrl.searchParams.set('username', username);
+      window.location.href = redirectUrl.toString();
+    }
+  };
+
+  const handleFailedAuth = () => {
+    if (isVerificationMode && expectedUsername) {
+      const redirectUrl = new URL(callbackUrl);
+      redirectUrl.searchParams.set('status', 'failed');
+      redirectUrl.searchParams.set('error', 'Authentication failed');
+      window.location.href = redirectUrl.toString();
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold text-center">
-        Face Authentication POC
+        {isVerificationMode ? `Face Verification for ${expectedUsername}` : 'Face Authentication POC'}
       </h1>
 
       <div className="text-center">

@@ -2,12 +2,40 @@
 '// This is NOT secure for production. Use HttpOnly cookies and server/middleware protection for real apps.';
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { withAuth } from '@/components/withAuth';
 
 function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [authStatus, setAuthStatus] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string>('');
+
+  useEffect(() => {
+    const status = searchParams.get('status');
+    const username = searchParams.get('username');
+    const error = searchParams.get('error');
+
+    if (status === 'success' && username) {
+      setAuthStatus('success');
+      setAuthMessage(
+        `Face authentication successful for ${username}!`
+      );
+    } else if (status === 'failed') {
+      setAuthStatus('failed');
+      setAuthMessage(error || 'Face authentication failed');
+    }
+
+    if (status) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('status');
+      url.searchParams.delete('username');
+      url.searchParams.delete('error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -25,6 +53,21 @@ function Home() {
             <p className="mt-4 text-xl text-gray-600">
               You have successfully logged in!
             </p>
+
+            {authStatus && (
+              <div
+                className={`mt-4 p-4 rounded-md ${
+                  authStatus === 'success'
+                    ? 'bg-green-100 border border-green-400 text-green-700'
+                    : 'bg-red-100 border border-red-400 text-red-700'
+                }`}
+              >
+                <p className="font-medium">
+                  {authStatus === 'success' ? '✅ ' : '❌ '}
+                  {authMessage}
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex space-x-4">
             <Link
