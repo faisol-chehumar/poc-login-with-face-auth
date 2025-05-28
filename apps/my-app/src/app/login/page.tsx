@@ -1,8 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import {
+  withSuspense,
+  LoadingSpinner,
+} from '@/components/LoadingSpinner';
 
-export default function Login() {
+function SearchParamsWrapper() {
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from');
+
+  return (
+    <p className="mt-2 text-center text-sm text-gray-600">
+      {from ? `Please sign in to access ${from}` : null}
+    </p>
+  );
+}
+
+function LoginContent() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -51,6 +67,9 @@ export default function Login() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
+          <React.Suspense fallback={<LoadingSpinner />}>
+            <SearchParamsWrapper />
+          </React.Suspense>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
@@ -95,3 +114,5 @@ export default function Login() {
     </div>
   );
 }
+
+export default withSuspense(LoginContent);

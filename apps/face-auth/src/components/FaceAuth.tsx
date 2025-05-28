@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import * as faceapi from 'face-api.js';
 
@@ -10,11 +10,14 @@ interface User {
   descriptor: Float32Array;
 }
 
-export default function FaceAuth() {
+function FaceAuthContent() {
   const searchParams = useSearchParams();
   const expectedUsername = searchParams.get('username');
-  const callbackUrl = searchParams.get('callback') || process.env.NEXT_PUBLIC_CALLBACK_URL || 'http://localhost:3000';
-  
+  const callbackUrl =
+    searchParams.get('callback') ||
+    process.env.NEXT_PUBLIC_CALLBACK_URL ||
+    'http://localhost:3000';
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -200,11 +203,16 @@ export default function FaceAuth() {
           (user) => user.name === match.label
         );
         setCurrentUser(matchedUser || null);
-        
+
         if (isVerificationMode && expectedUsername) {
-          if (match.label.toLowerCase() === expectedUsername.toLowerCase()) {
+          if (
+            match.label.toLowerCase() ===
+            expectedUsername.toLowerCase()
+          ) {
             setMessage(
-              `✅ Authentication successful! Welcome, ${match.label}! (Distance: ${match.distance.toFixed(2)})`
+              `✅ Authentication successful! Welcome, ${
+                match.label
+              }! (Distance: ${match.distance.toFixed(2)})`
             );
             setTimeout(() => handleSuccessfulAuth(match.label), 2000);
           } else {
@@ -255,7 +263,9 @@ export default function FaceAuth() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold text-center">
-        {isVerificationMode ? `Face Verification for ${expectedUsername}` : 'Face Authentication POC'}
+        {isVerificationMode
+          ? `Face Verification for ${expectedUsername}`
+          : 'Face Authentication POC'}
       </h1>
 
       <div className="text-center">
@@ -391,5 +401,13 @@ export default function FaceAuth() {
         </ol>
       </div>
     </div>
+  );
+}
+
+export default function FaceAuth() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FaceAuthContent />
+    </Suspense>
   );
 }
