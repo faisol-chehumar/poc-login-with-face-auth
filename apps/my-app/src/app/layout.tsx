@@ -64,8 +64,7 @@ function LayoutContent({
         if (
           navType === 'navigate' ||
           navType === 'reload' ||
-          navType === 'replace' ||
-          (navType === 'push' && !username && status !== 'success')
+          navType === 'replace'
         ) {
           shouldRedirect = true;
         }
