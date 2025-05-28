@@ -2,17 +2,5 @@
   "buildCommand": "cd apps/my-app && npm run build",
   "outputDirectory": "apps/my-app/.next",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "projects": [
-    {
-      "name": "my-app",
-      "source": "apps/my-app",
-      "framework": "nextjs"
-    },
-    {
-      "name": "face-auth",
-      "source": "apps/face-auth", 
-      "framework": "nextjs"
-    }
-  ]
+  "framework": "nextjs"
 }
