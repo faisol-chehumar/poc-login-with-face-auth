@@ -18,5 +18,8 @@
   },
   "resolutions": {
     "lightningcss": "1.22.0"
+  },
+  "dependencies": {
+    "jose": "^6.0.11"
   }
 }
