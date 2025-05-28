@@ -45,10 +45,14 @@ export default function FaceAuth() {
     const storedUsers = localStorage.getItem('faceAuthUsers');
     if (storedUsers) {
       const parsedUsers = JSON.parse(storedUsers);
-      const usersWithDescriptors = parsedUsers.map((user: any) => ({
-        ...user,
-        descriptor: new Float32Array(user.descriptor),
-      }));
+      const usersWithDescriptors = parsedUsers.map(
+        (
+          user: Omit<User, 'descriptor'> & { descriptor: number[] }
+        ) => ({
+          ...user,
+          descriptor: new Float32Array(user.descriptor),
+        })
+      );
       setUsers(usersWithDescriptors);
     }
   };
