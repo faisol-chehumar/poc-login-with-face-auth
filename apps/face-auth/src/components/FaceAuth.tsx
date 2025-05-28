@@ -13,7 +13,7 @@ export default function FaceAuth() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [, setIsRegistering] = useState(false);
   const [userName, setUserName] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -329,12 +329,15 @@ export default function FaceAuth() {
             Download face-api.js models and place them in{' '}
             <code>/public/models/</code>
           </li>
-          <li>Click "Start Camera" to begin</li>
+          <li>Click &rdquo;Start Camera&rdquo; to begin</li>
           <li>
-            Register a user by entering a name and clicking "Register
-            Face"
+            Register a user by entering a name and clicking
+            &rdquo;Register Face&rdquo;
           </li>
-          <li>Test authentication by clicking "Authenticate Face"</li>
+          <li>
+            Test authentication by clicking &rdquo;Authenticate
+            Face&rdquo;
+          </li>
         </ol>
       </div>
     </div>
